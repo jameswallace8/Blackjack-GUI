@@ -1,0 +1,134 @@
+import tkinter as tk
+import random
+import sys
+import os
+
+HEIGHT = 518
+WIDTH = 693
+
+deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]*4
+
+root = tk.Tk()
+root.title('Blackjack')
+
+canvas = tk.Canvas(root, height=HEIGHT, width=WIDTH).pack()
+
+hand = []
+total = []
+count = 0
+
+
+def scored21():
+    scored21 = tk.Label(root, text='Blackjack!!!', font=('Bodoni 72', 40), relief='groove', bd=5, bg="#ecd10d",
+                        fg='#FFFFFF')
+    scored21.place(relx=0.32, rely=0.4, relwidth=0.35, relheight=0.163)
+    next_round = tk.Label(root, text='Continue ->', font=('Big Caslon', 30), relief='sunken', bd=5, bg="#ecd10d",
+                          fg='#FFFFFF')
+    next_round.place(relx=0.2, rely=0.7, relwidth=0.25, relheight=0.15)
+
+
+def over21():
+    over21 = tk.Label(root, text=str('Bust!!!''\n''Continue ->'), font=('Big Caslon', 25), relief='sunken',
+                      bg="#c60909", bd=5, fg='#FFFFFF')
+    over21.place(relx=0.2, rely=0.7, relwidth=0.25, relheight=0.15)
+
+
+class Cards:
+    def deal(self):
+        random.shuffle(deck)
+        card1 = deck.pop()
+        card2 = deck.pop()
+        hand.append(card1+card2)
+        frame = tk.Frame(root, bg='#3a9de8')
+        frame.place(relx=0.461, rely=0.215, relwidth=0.06, relheight=0.07)
+        tk.Label(frame, text=card1+card2, font=('Bodoni 72', 40), bg='#3a9de8', fg='#FFFFFF').pack(side='bottom')
+
+    def draw(self):
+        random.shuffle(deck)
+        draw_card = deck.pop()
+        hand.append(draw_card)
+
+        dc = tk.Label(canvas, text=draw_card, font=('Bodoni 72', 40), bg='#3b9de8', fg='#FFFFFF')
+        dc.place(relx=0.445, rely=0.47, relwidth=0.1, relheight=0.08)
+        draw_total = sum(hand)
+
+        display_dt = tk.Label(root, text=draw_total, font=('Bodoni 72', 40), bg='#3a9de8', fg='#FFFFFF')
+        display_dt.place(relx=0.461, rely=0.215, relwidth=0.06, relheight=0.07)
+
+        if draw_total == 21:
+            scored21()
+        elif draw_total > 21:
+            over21()
+
+    def end_screen(self, draw_total, count, frame1):
+        count += 1
+        diff21 = 21 - draw_total
+        if draw_total > 21:
+            diff21 = 21
+        total.append(diff21)
+        score = 100 - sum(total[1:6])
+        if count == 6:
+            frame = tk.Frame(root, bg='#3a9de8', borderwidth=5, relief='raised').place(relwidth=1, relheight=1)
+            tk.Label(frame, text='Your game total and grade is displayed below:', font=('Bodoni 72 Oldstyle', 30), bg='#3a9de8', fg='#FFFFFF').place(relx=0.12, rely=0.13, relwidth=0.8, relheight=0.2)
+            if 50 <= score <= 59:
+                grade = 'Grade D, not great...'
+            elif 60 <= score <= 69:
+                grade = 'Grade C, mediocre...'
+            elif 70 <= score <= 79:
+                grade = 'Grade B, average score...'
+            elif 80 <= score <= 89:
+                grade = 'Grade A, good score!'
+            elif 90 <= score <= 100:
+                grade = 'Grade A*, very good!!!'
+            else:
+                grade = 'Not great, you should try again...'
+            tk.Label(frame, text=str(score) + '\n'+grade, font=('Bodoni 72', 45), bg='#3a9de8', fg='#FFFFFF').place(relx=0.1, rely=0.38, relwidth=0.8, relheight=0.2)
+            end_button = tk.Button(canvas, text='End Game', font=('Bodoni 72 Oldstyle', 43), command=sys.exit)
+            end_button.place(relx=0.2, rely=0.7, relwidth=0.25, relheight=0.15)
+            restart_button = tk.Button(root, text='Restart', font=('Bodoni 72 Oldstyle', 50), command=lambda: os.execl(sys.executable, sys.executable, *sys.argv))
+            restart_button.place(relx=0.55, rely=0.7, relwidth=0.25, relheight=0.15)
+            frame1.destroy(self)
+
+
+c = Cards()
+blackjack_image = tk.PhotoImage(file='start_screen.png')
+blackjack_label = tk.Label(root, image=blackjack_image).place(relwidth=1, relheight=1)
+
+
+def rounds(count, start_button):
+    c.end_screen(draw_total=sum(hand), count=count, frame1=tk.Frame)
+    hand.clear()
+    start_button.destroy()
+    blackjack_image.configure(file='blue.png')
+
+    frame = tk.Frame(root, bg='#3b9de8', bd=5, borderwidth=5, relief='groove')
+    frame.place(relx=0.32, rely=0.15, relwidth=0.35, relheight=0.2)
+
+    frame1 = tk.Frame(root, bg='#3b9de8', bd=5, borderwidth=5, relief='sunken')
+    frame1.place(relx=0.32, rely=0.4, relwidth=0.35, relheight=0.163)
+
+    count += 1
+    if count <= 5:
+        round1_label = tk.Label(canvas, text=('Round ' + str(count)), font=('Bodoni 72', 20),
+                            bg='#5c88dd', fg='#FFFFFF', borderwidth=5, relief='raised')
+        round1_label.place(relx=0.437, rely=0.02)
+
+    tk.Label(frame, text='You have been dealt a card total of:', font=30, bg='#3b9de8', fg='#FFFFFF').pack()
+
+    c.deal()
+
+    tk.Label(frame, text='You must now "draw" or "end"', font=30, bg='#3b9de8', fg='#FFFFFF').pack(side='bottom')
+
+    tk.Label(frame1, text='Your draw cards:', font=('Bodoni 72', 20), bg="#3b9de8", fg='#FFFFFF').pack(side='top')
+
+    draw_button = tk.Button(canvas, text='Draw', font=('Bodoni 72 Oldstyle', 50), command=c.draw)
+    draw_button.place(relx=0.2, rely=0.7, relwidth=0.25, relheight=0.15)
+
+    end_button = tk.Button(canvas, text='End', font=('Bodoni 72 Oldstyle', 50), command=lambda: rounds(count, start_button))
+    end_button.place(relx=0.55, rely=0.7, relwidth=0.25, relheight=0.15)
+
+
+start_button = tk.Button(canvas, text='Start game', font=('Bodoni 72', 25), command=lambda: rounds(count, start_button))
+start_button.place(relx=0.4, rely=0.65, relwidth=0.2, relheight=0.12)
+
+root.mainloop()
